@@ -15,7 +15,7 @@ class Polygon:
         glBegin(self.mode)
         glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
         for vertex in self.vertices:
-            newVertex = vertex @ self.mat
+            newVertex = self.mat @ vertex
             glVertex3f(newVertex[0], newVertex[1], newVertex[2])
 
 
@@ -89,9 +89,9 @@ class Triangle(Polygon):
         self.mode = GL_TRIANGLES
         self.color = [55/255, 114/255, 240/255, 1]
         self.vertices = [
-            [x, y+0.1, 0, 0],
-            [x-0.1, y-0.1, 0, 0],
-            [x+0.1, y-0.1, 0, 0],
+            [x, y+0.1, 0, 1],
+            [x-0.1, y-0.1, 0, 1],
+            [x+0.1, y-0.1, 0, 1],
         ]
         self.vertices = list(np.array(self.vertices))
 
@@ -114,10 +114,10 @@ class Rectangle(Polygon):
         self.mode = GL_QUADS
         self.color = [148/255, 74/255, 255/255, 1]
         self.vertices = [
-            [x-0.1, y+0.1, 0, 0],
-            [x+0.1, y+0.1, 0, 0],
-            [x+0.1, y-0.1, 0, 0],
-            [x-0.1, y-0.1, 0, 0],
+            [x-0.1, y+0.1, 0, 1],
+            [x+0.1, y+0.1, 0, 1],
+            [x+0.1, y-0.1, 0, 1],
+            [x-0.1, y-0.1, 0, 1],
         ]
         self.vertices = list(np.array(self.vertices))
 
@@ -149,7 +149,7 @@ class Ellipse(Polygon):
         for i in range(pointNum):
             pointX = xs * 0.05 + x
             pointY = ys * 0.01 + y
-            self.vertices.append([pointX, pointY, 0, 0])
+            self.vertices.append([pointX, pointY, 0, 1])
             # self.vertices.extend([[pointX, pointY, 0],[-pointX, pointY, 0], [pointX, -pointY, 0], [-pointX, -pointY, 0]])
             
             t = xs
@@ -179,6 +179,7 @@ class Viewer:
         self.halfWidth = 400
         self.halfHeight = 400
         self.click = False
+        self.isScaleMode = False
         pass
 
     def display(self):
@@ -217,6 +218,10 @@ class Viewer:
         elif key == b'\x1b':
             self.mode = 0
             print("cancellation of polygon drawing mode")
+        
+        if key == b's':
+            self.isScaleMode = not self.isScaleMode
+            print(f"now scale mode is {self.isScaleMode}")
     
         glutPostRedisplay()
 
@@ -280,19 +285,19 @@ class Viewer:
         dx = (self.xStart - x)
         dy = (self.yStart - y)
 
-        # TODO : ctrl 먹히면 수정하기 . . .
-        # if abs(dx) > 2 or abs(dy) > 2:
-        #     for pol in self.polygons:
-        #         pol.scale(dx, dy)
-
-        if abs(dx) > 2 or abs(dy) > 2:
-            degree = math.pi/1800
-            if abs(dx) > abs(dy):
-                degree = degree*dx
-            else :
-                degree = -degree*dy
-            for pol in self.polygons:
-                pol.rotation(degree)
+        if self.isScaleMode :
+            if abs(dx) > 2 or abs(dy) > 2:
+                for pol in self.polygons:
+                    pol.scale(dx, dy)
+        else :
+            if abs(dx) > 2 or abs(dy) > 2:
+                degree = math.pi/1800
+                if abs(dx) > abs(dy):
+                    degree = degree*dx
+                else :
+                    degree = -degree*dy
+                for pol in self.polygons:
+                    pol.rotation(degree)
 
         glutPostRedisplay()
 
