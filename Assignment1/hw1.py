@@ -1,3 +1,4 @@
+from telnetlib import NEW_ENVIRON
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import numpy as np
@@ -11,68 +12,134 @@ class Polygon:
         self.vertices = []
 
     def draw(self):
-        raise NotImplementedError
+        glBegin(self.mode)
+        glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
+        for vertex in self.vertices:
+            newVertex = vertex @ self.mat
+            glVertex3f(newVertex[0], newVertex[1], newVertex[2])
 
+
+            # for vertex in self.vertices:
+            # print(f"origin {vertex} {self.mat}")
+            # newVertex = np.transpose([vertex,[0,0,0,0],[0,0,0,0],[0,0,0,0]])
+            # print(f"trans {newVertex}")
+            # newVertex = newVertex @ self.mat
+            # print(f"mat {newVertex}")
+            # newVertex = np.transpose(newVertex)[0]
+            # print(f"new {newVertex}")
+            # glVertex3f(newVertex[0], newVertex[1], newVertex[2])
+        glEnd()
+
+    # Task 3-1
     def scale(self, sx, sy):
-        transfromeMat = np.array([[sx,  0,  0,  0], 
-                                  [0,   sy, 0,  0], 
+        dx = dy = 1
+        if sx > 0 :
+            dx = 1.1
+        elif sx < 0:
+            dx = 0.9
+        
+        if sy > 0 :
+            dy = 1.1
+        elif sy < 0:
+            dy = 0.9
+
+        transfromeMat = np.array([[dx,  0,  0,  0], 
+                                  [0,   dy, 0,  0], 
                                   [0,   0,  1,  0], 
                                   [0,   0,  0,  1]])
 
-        self.mat = self.mat @ transfromeMat
+        self.mat = transfromeMat @ self.mat
     
-    def translate(self, dx, dy):
-        for i, vertex in enumerate(self.vertices):
-            self.vertices[i] = [vertex[0] + dx, vertex[1] + dy,  vertex[2]]
+    # Task 3-2
+    def rotation(self, degree):
+        cos = math.cos(degree)
+        sin = math.sin(degree)
+        transfromeMat = np.array([[cos, -sin,   0,  0], 
+                                  [sin, cos,    0,  0], 
+                                  [0,   0,      1,  0], 
+                                  [0,   0,      0,  1]])
+        # xm = np.array([[cos, -sin,   0,  0], 
+        #                           [sin, cos,    0,  0], 
+        #                           [0,   0,      1,  0], 
+        #                           [0,   0,      0,  1]])
+        # ym = np.array([[cos, -sin,   0,  0], 
+        #                           [sin, cos,    0,  0], 
+        #                           [0,   0,      1,  0], 
+        #                           [0,   0,      0,  1]])
+                                
+
+        self.mat = transfromeMat @ self.mat
+
+    # Task 3-3
+    def translation(self, dx, dy):
+        transfromeMat = np.array([[1,   0,  dx,  dx], 
+                                  [0,   1, dy,  dy], 
+                                  [0,   0,  1,  0], 
+                                  [0,   0,  0,  1]])
+        self.mat = transfromeMat @ self.mat
+        # for i, vertex in enumerate(self.vertices):
+        #     self.vertices[i] = [vertex[0] + dx, vertex[1] + dy,  vertex[2], vertex[3]]
 
 
+# Task 1
 # define your polygons here
 class Triangle(Polygon):
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.mode = GL_TRIANGLES
+        self.color = [55/255, 114/255, 240/255, 1]
         self.vertices = [
-            [x, y+0.1, 0],
-            [x-0.1, y-0.1, 0],
-            [x+0.1, y-0.1, 0]
+            [x, y+0.1, 0, 0],
+            [x-0.1, y-0.1, 0, 0],
+            [x+0.1, y-0.1, 0, 0],
         ]
         self.vertices = list(np.array(self.vertices))
 
     def draw(self):
-        glBegin(GL_TRIANGLES)
-        for vertex in self.vertices:
-            glColor4f(55/255, 114/255, 240/255, 1)
-            glVertex3f(vertex[0], vertex[1], vertex[2])
-        glEnd()
+        super().draw()
 
-    def translate(self, dx, dy):
-        super().translate(dx, dy)
+    def translation(self, dx, dy):
+        super().translation(dx, dy)
+    
+    def scale(self, sx, sy):
+        super().scale(sx, sy)
+
+    def rotation(self, degree):
+        super().rotation(degree)
 
 
 class Rectangle(Polygon):
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.mode = GL_QUADS
+        self.color = [148/255, 74/255, 255/255, 1]
         self.vertices = [
-            [x-0.1, y+0.1, 0],
-            [x+0.1, y+0.1, 0],
-            [x+0.1, y-0.1, 0],
-            [x-0.1, y-0.1, 0],
+            [x-0.1, y+0.1, 0, 0],
+            [x+0.1, y+0.1, 0, 0],
+            [x+0.1, y-0.1, 0, 0],
+            [x-0.1, y-0.1, 0, 0],
         ]
         self.vertices = list(np.array(self.vertices))
 
     def draw(self):
-        glBegin(GL_QUADS)
-        for vertex in self.vertices:
-            glColor4f(148/255, 74/255, 255/255, 1)
-            glVertex3f(vertex[0], vertex[1], vertex[2])
-        glEnd()
+        super().draw()
     
-    def translate(self, dx, dy):
-        super().translate(dx, dy)
+    def translation(self, dx, dy):
+        super().translation(dx, dy)
+
+    def scale(self, sx, sy):
+        super().scale(sx, sy)
+
+    def rotation(self, degree):
+        super().rotation(degree)
 
 
+# TODO : 대칭 추가하기, 크기 바꾸고, 변수 이름 변경 
 class Ellipse(Polygon):
     def __init__(self, x, y):
         super().__init__(x, y)
+        self.mode = GL_TRIANGLE_FAN
+        self.color = [24/255, 158/255, 135/255, 1]
         self.vertices = []
         pointNum = 20
         theta = (2 * math.pi) / pointNum
@@ -82,7 +149,7 @@ class Ellipse(Polygon):
         for i in range(pointNum):
             pointX = xs * 0.05 + x
             pointY = ys * 0.01 + y
-            self.vertices.append([pointX, pointY, 0])
+            self.vertices.append([pointX, pointY, 0, 0])
             # self.vertices.extend([[pointX, pointY, 0],[-pointX, pointY, 0], [pointX, -pointY, 0], [-pointX, -pointY, 0]])
             
             t = xs
@@ -92,14 +159,16 @@ class Ellipse(Polygon):
         xs = ys = t = 0
 
     def draw(self):
-        glBegin(GL_TRIANGLE_FAN)
-        for vertex in self.vertices:
-            glColor4f(24/255, 158/255, 135/255, 1)
-            glVertex3f(vertex[0], vertex[1], vertex[2])
-        glEnd()
+        super().draw()
 
-    def translate(self, dx, dy):
-        super().translate(dx, dy)
+    def translation(self, dx, dy):
+        super().translation(dx, dy)
+
+    def scale(self, sx, sy):
+        super().scale(sx, sy)
+
+    def rotation(self, degree):
+        super().rotation(degree)
 
 
 class Viewer:
@@ -109,6 +178,7 @@ class Viewer:
         self.polyNum = 0
         self.halfWidth = 400
         self.halfHeight = 400
+        self.click = False
         pass
 
     def display(self):
@@ -155,22 +225,22 @@ class Viewer:
         if key == 100: # left arrow
             print("Translate left")
             for pol in self.polygons:
-                pol.translate(-1/self.halfWidth, 0)
+                pol.translation(-1/self.halfWidth, 0)
 
         elif key == 101: # up arrow
             print("Translate up")
             for pol in self.polygons:
-                pol.translate(0, 1/self.halfHeight)
+                pol.translation(0, 1/self.halfHeight)
 
         elif key == 102: # right arrow
             print("Translate right")
             for pol in self.polygons:
-                pol.translate(1/self.halfWidth, 0)
+                pol.translation(1/self.halfWidth, 0)
 
         if key == 103: # down arrow
             print("Translate down")
             for pol in self.polygons:
-                pol.translate(0, -1/self.halfHeight)
+                pol.translation(0, -1/self.halfHeight)
 
         glutPostRedisplay()
 
@@ -178,7 +248,14 @@ class Viewer:
         # button macros: GLUT_LEFT_BUTTON, GLUT_MIDDLE_BUTTON, GLUT_RIGHT_BUTTON
         print(f"mouse press event: button={button}, state={state}, x={x}, y={y}")
 
-        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
+        if state == GLUT_DOWN:
+            self.click = True
+            self.xStart = x
+            self.yStart = y
+        elif state == GLUT_UP:
+            self.click = False
+        
+        if button == GLUT_LEFT_BUTTON and self.click:
             newX = (x-self.halfWidth)/self.halfWidth
             newY = -(y-self.halfHeight)/self.halfHeight
             self.polyNum =  self.polyNum + 1
@@ -199,6 +276,23 @@ class Viewer:
 
     def motion(self, x, y):
         print(f"mouse move event: x={x}, y={y}")
+
+        dx = (self.xStart - x)
+        dy = (self.yStart - y)
+
+        # TODO : ctrl 먹히면 수정하기 . . .
+        # if abs(dx) > 2 or abs(dy) > 2:
+        #     for pol in self.polygons:
+        #         pol.scale(dx, dy)
+
+        if abs(dx) > 2 or abs(dy) > 2:
+            degree = math.pi/1800
+            if abs(dx) > abs(dy):
+                degree = degree*dx
+            else :
+                degree = -degree*dy
+            for pol in self.polygons:
+                pol.rotation(degree)
 
         glutPostRedisplay()
 
