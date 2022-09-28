@@ -294,9 +294,9 @@ class Viewer:
                 else:
                     degree = math.pi/1800
                     if abs(dx) > abs(dy):
-                        degree = degree*dx
+                        degree = -degree*dx
                     else:
-                        degree = -degree*dy
+                        degree = degree*dy
                     pol.rotation(degree)
 
                 if not self.isGlobalMode:
