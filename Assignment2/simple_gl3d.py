@@ -6,7 +6,13 @@ import numpy as np
 
 class Viewer:
     def __init__(self):
-        pass
+        self.translate = [0,0]
+        self.scale = 1
+
+        # window width, height 
+        self.width = 800 
+        self.height = 800
+
 
     def light(self):
         glEnable(GL_COLOR_MATERIAL)
@@ -36,6 +42,8 @@ class Viewer:
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         # do some transformations using camera view
+        glTranslatef(self.translate[0]/100, self.translate[1]/100, 0)
+        glScalef(self.scale, self.scale, 1)
         glutSolidTeapot(0.5)
 
         glutSwapBuffers()
@@ -48,6 +56,24 @@ class Viewer:
             print("alt pressed")
         if glutGetModifiers() & GLUT_ACTIVE_CTRL:
             print("ctrl pressed")
+
+        if key == b'w':
+            self.translate[1] += self.height/100
+        elif key == b'a':
+            self.translate[0] -= self.width/100
+        elif key == b's':
+            self.translate[1] -= self.height/100
+        elif key == b'd':
+            self.translate[0] += self.width/100
+
+        if key == b'+' and self.scale < 10:
+            self.scale += 0.1
+        elif key == b'-' and self.scale > 0.1:
+            self.scale -= 0.1
+        
+        # if key == b'\x1b':
+        #     print("exit")
+        #     glutLeaveMainLoop()
 
         glutPostRedisplay()
 
@@ -70,11 +96,14 @@ class Viewer:
     def reshape(self, w, h):
         # implement here
         print(f"window size: {w} x {h}")
+        self.width = w 
+        self.height = h
 
         glutPostRedisplay()
 
     def run(self):
         glutInit()
+
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH)
         glutInitWindowSize(800, 800)
         glutInitWindowPosition(0, 0)
@@ -89,6 +118,7 @@ class Viewer:
 
         self.light()
 
+        # glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS)
         glutMainLoop()
 
 
