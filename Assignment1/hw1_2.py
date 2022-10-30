@@ -14,12 +14,18 @@ class Polygon:
     # Task 1, Task 4
     def draw(self):
         # draw polygon
+        glPushMatrix()
+        glLoadIdentity()
+        glMultMatrixf(self.mat)
         glBegin(self.mode)
         glColor4f(self.color[0], self.color[1], self.color[2], self.color[3])
         for vertex in self.vertices:
-            newVertex = self.mat @ vertex # apply transform matrix
-            glVertex3f(newVertex[0], newVertex[1], newVertex[2])
+
+            # newVertex = self.mat @ vertex # apply transform matrix
+            # glVertex3f(newVertex[0], newVertex[1], newVertex[2])
+            glVertex3f(vertex[0], vertex[1], vertex[2])
         glEnd()
+        glPopMatrix()
 
         # draw origin point
         glPointSize(2.0)
@@ -61,8 +67,16 @@ class Polygon:
 
     # Task 3-3
     def translation(self, dx, dy):
-        transfromeMat = np.array([[1,   0,  dx,  0], 
-                                  [0,   1,  dy,  0], 
+        transfromeMat = np.array([[1,   0,  0,  0], 
+                                  [0,   1,  0,  0], 
+                                  [0,   0,  1,   0], 
+                                  [dx,   dy,  0,   1]])
+        self.mat = transfromeMat @ self.mat
+
+    # Task 3-3
+    def translationori(self, dx, dy):
+        transfromeMat = np.array([[1,   0,  0,  dx], 
+                                  [0,   1,  0,  dy], 
                                   [0,   0,  1,   0], 
                                   [0,   0,  0,   1]])
         self.mat = transfromeMat @ self.mat
@@ -285,8 +299,8 @@ class Viewer:
         # Task 3-1, Task 3-2, Task 4
         if abs(dx) > 2 or abs(dy) > 2:
             for pol in self.polygons:
-                if not self.isGlobalMode:
-                    pol.translation(-pol.newOrigin[0], -pol.newOrigin[1])
+                # if not self.isGlobalMode:
+                #     pol.translation(-pol.newOrigin[0], -pol.newOrigin[1])
 
                 if self.isScaleMode:
                     pol.scale(dx, dy)
@@ -294,17 +308,17 @@ class Viewer:
                 else:
                     degree = math.pi/1800
                     if abs(dx) > abs(dy):
-                        degree = -degree*dx
+                        degree = degree*dx
                     else:
-                        degree = degree*dy
+                        degree = -degree*dy
                     pol.rotation(degree)
 
-                if not self.isGlobalMode:
-                    pol.translation(pol.newOrigin[0], pol.newOrigin[1])
+                # if not self.isGlobalMode:
+                #     pol.translation(pol.newOrigin[0], pol.newOrigin[1])
 
                 # if global mode, transform origin
                 if self.isGlobalMode:
-                    pol.newOrigin = pol.mat @ pol.origin 
+                    pol.newOrigin = pol.mat.transpose() @ pol.origin 
 
         glutPostRedisplay()
 
